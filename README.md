@@ -1,5 +1,3 @@
-# TeamLunch APP
-
 TeamLunch lets office colleagues collaboratively pick a lunch restaurant in real-time. One person creates a session, peers join it, everyone submits restaurant suggestions, and the initiator ends the session — triggering a random pick broadcast to all members.
 
 ## Technology Stack
