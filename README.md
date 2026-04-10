@@ -61,7 +61,7 @@ TeamLunch/
 2. **Environment mapping:** Configure standard `.env` variables from `.env.example` in both `team-lunch-api` and `team-lunch-app` if necessary. (Ensure Google Client variables are correctly placed).
 3. **Full Deployment
 ```bash
-docker-compose up -d
+docker-compose up --build -d
 
 ```
 4. **Database Spin-up:**
@@ -94,4 +94,7 @@ For Playwright E2E UI Happy Path:
 cd team-lunch-app
 npx playwright test
 ```
+## 👥 Authors
+
+GOVTECH Singapore - Coding assignment
 
