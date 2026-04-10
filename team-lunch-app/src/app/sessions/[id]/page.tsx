@@ -388,7 +388,7 @@ function InviteModal({
   );
 }
 
-// Main Page 
+// Main Page
 export default function SessionRoomPage() {
   const params = useParams();
   const sessionId = Number(params.id);
@@ -435,7 +435,17 @@ export default function SessionRoomPage() {
     socket.on('restaurant:added', (newRestaurant: Restaurant) => {
       queryClient.setQueryData(['restaurants', sessionId], (oldData: Restaurant[] | undefined) => {
         if (!oldData) return [newRestaurant];
-        return oldData.find((r) => r.id === newRestaurant.id) ? oldData : [...oldData, newRestaurant];
+
+        if (oldData.some(r => r.id === newRestaurant.id)) return oldData;
+
+        const optimisticIdx = oldData.findIndex(r => r.id < 0 && r.name === newRestaurant.name);
+        if (optimisticIdx !== -1) {
+          const newData = [...oldData];
+          newData[optimisticIdx] = newRestaurant;
+          return newData;
+        }
+
+        return [...oldData, newRestaurant];
       });
     });
 
@@ -469,9 +479,17 @@ export default function SessionRoomPage() {
 
     try {
       const res = await api.post<Restaurant>(`/sessions/${sessionId}/restaurants`, { name });
-      // Replace optimistic entry with the real one from the server
+
+      // Sync cache: cleanup optimistic entry if socket arrived first, else replace it
       queryClient.setQueryData(['restaurants', sessionId], (old: Restaurant[] | undefined) => {
         if (!old) return [res.data];
+
+        if (old.some((r) => r.id === res.data.id)) {
+          // Socket already inserted the real one -> remove our leftover optimistic entry (if any)
+          return old.filter((r) => r.id !== -optimisticId);
+        }
+
+        // Replace optimistic entry with the real one from the server
         return old.map((r) => (r.id === -optimisticId ? res.data : r));
       });
     } catch (err) {
@@ -594,7 +612,7 @@ export default function SessionRoomPage() {
         </div>
 
         {/* Submit resturant suggestion */}
-        <div style={{ marginBottom: '3rem', padding: '1.5rem', backgroundColor: '#f3f4f6', borderRadius: '0.5rem' }}>
+        <div style={{ marginBottom: '3rem', padding: '1.5rem', backgroundColor: 'white', borderRadius: '0.5rem' }}>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Submit a Suggestion</h2>
           <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '1rem' }}>
             <input

@@ -42,7 +42,20 @@ export class RealtimeGateway
 
   async handleConnection(client: Socket) {
     try {
-      const token: string | undefined = client.handshake.auth.token;
+      let token: string | undefined = client.handshake.auth?.token;
+      
+      // Fallback to reading the token from cookies since the frontend uses httpOnly cookies
+      if (!token && client.handshake.headers.cookie) {
+        const cookies = client.handshake.headers.cookie.split(';');
+        for (const cookie of cookies) {
+          const [name, value] = cookie.trim().split('=');
+          if (name === 'access_token') {
+            token = value;
+            break;
+          }
+        }
+      }
+
       if (!token) throw new Error('No token provided');
 
       const secret = this.configService.get<string>('JWT_SECRET');
